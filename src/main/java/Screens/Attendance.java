@@ -66,6 +66,14 @@ public class Attendance extends JPanel {
         detailsViewData = rawData; // Store raw data directly for details view (if needed later)
     }
 
+    private void initializeFilteredIndices() {
+        filteredToOriginalIndex.clear();
+        // Map all original indices when table is first loaded
+        for (int i = 0; i < tableViewData.length; i++) {
+            filteredToOriginalIndex.put(i, i);
+        }
+    }
+
     /**
      * Constructor for the Attendance panel.
      * Sets up the UI components, layout, and event listeners.
@@ -97,7 +105,21 @@ public class Attendance extends JPanel {
         JPanel searchMainPanel = new JPanel(new BorderLayout(10, 0)); // No horizontal gap between search button and field
         searchMainPanel.setOpaque(false);
 
-        searchField = new JTextField(); // Assign to class member
+        searchField = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().length() == 0) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.GRAY);
+                    g2.setFont(getFont().deriveFont(Font.PLAIN));
+                    FontMetrics fm = g2.getFontMetrics();
+                    int padding = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                    g2.drawString("Search", 5, padding);
+                    g2.dispose();
+                }
+            }
+        };// Assign to class member
         searchField.setFont(new Font("Arial", Font.PLAIN, 16));
         searchField.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5)); // Standard internal padding for text
         searchField.setBackground(Color.WHITE); // White background for the input area
@@ -110,7 +132,7 @@ public class Attendance extends JPanel {
         searchButton.setBorder(null); // No border for the button
         searchButton.setFocusable(false);
 
-        searchMainPanel.add(searchButton, BorderLayout.WEST); // Search button on the left
+        //searchMainPanel.add(searchButton, BorderLayout.WEST); // Search button on the left
         searchMainPanel.add(searchField, BorderLayout.CENTER); // Text field takes center
 
         // Set preferred size for the entire search block to match image height
@@ -292,6 +314,9 @@ public class Attendance extends JPanel {
             }
         };
         table = new JTable(employeeTableModel);
+        loadEmployeeTabledata();
+// Then initialize filtered indices
+        initializeFilteredIndices();
         table.getTableHeader().setReorderingAllowed(false); // Prevent column reordering
         TableStyler.styleTable(table); // Apply custom styling
 

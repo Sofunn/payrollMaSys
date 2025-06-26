@@ -50,6 +50,14 @@ public class LeaveManagement extends JPanel {
         detailsViewData = rawData; // Use rawData directly for details view
         employeeTableModel.setDataVector(tableViewData, tableViewHeaders);
     }
+
+    private void initializeFilteredIndices() {
+        filteredToOriginalIndex.clear();
+        // Map all original indices when table is first loaded
+        for (int i = 0; i < tableViewData.length; i++) {
+            filteredToOriginalIndex.put(i, i);
+        }
+    }
     public void clearSearchField() {
         searchField.setText("");
     }
@@ -73,7 +81,21 @@ public class LeaveManagement extends JPanel {
         searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
         Font font = new Font("Arial", Font.PLAIN, 16);
-        searchField = new JTextField();
+        searchField = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().length() == 0) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.GRAY);
+                    g2.setFont(getFont().deriveFont(Font.PLAIN));
+                    FontMetrics fm = g2.getFontMetrics();
+                    int padding = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                    g2.drawString("Search", 5, padding);
+                    g2.dispose();
+                }
+            }
+        };
         searchField.setFont(font);
         searchField.setBorder(null);
         searchField.setPreferredSize(null);
@@ -86,7 +108,7 @@ public class LeaveManagement extends JPanel {
         searchButton.setFocusable(false);
 
         searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.WEST);
+        //searchPanel.add(searchButton, BorderLayout.WEST);
 
         RoundedComboBox<String> sortCombo = new RoundedComboBox<>(new String[] {
                 "All Departments", "Human Resource", "Administration", "Accounting", "Sales",  "Production", "Production (Pre-Press)", "Production (Press)", "Production (Post-Press)", "Production (Quality Control)"
@@ -201,6 +223,9 @@ public class LeaveManagement extends JPanel {
             }
         };
         table = new JTable(employeeTableModel);
+        loadEmployeeTabledata();
+// Then initialize filtered indices
+        initializeFilteredIndices();
 
         table.getTableHeader().setReorderingAllowed(false);
         TableStyler.styleTable(table);

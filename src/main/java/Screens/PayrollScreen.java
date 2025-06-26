@@ -162,7 +162,21 @@ public class PayrollScreen extends JPanel {
         searchPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 //        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10)); // Add left/right padding
 
-        searchField = new JTextField();
+        searchField = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().length() == 0) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.GRAY);
+                    g2.setFont(getFont().deriveFont(Font.PLAIN));
+                    FontMetrics fm = g2.getFontMetrics();
+                    int padding = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                    g2.drawString("Search", 5, padding);
+                    g2.dispose();
+                }
+            }
+        };
         searchField.setFont(new Font("Arial", Font.PLAIN, 16));
         searchField.setPreferredSize(null);
         searchField.setBorder(null);
@@ -175,7 +189,7 @@ public class PayrollScreen extends JPanel {
         searchButton.setFocusable(false);
 
         searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.WEST);
+        //searchPanel.add(searchButton, BorderLayout.WEST);
 
         // Dropdown
         RoundedComboBox<String> sortCombo = new RoundedComboBox<>(new String[] {

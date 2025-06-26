@@ -53,11 +53,20 @@ public class Employees extends JPanel {
         // Map data for details view
         detailsViewData = rawData; // Use rawData directly for details view
         employeeTableModel.setDataVector(tableViewData, tableViewHeaders);
+
     }
 
 
     public void clearSearchField() {
         searchField.setText("");
+    }
+
+    private void initializeFilteredIndices() {
+        filteredToOriginalIndex.clear();
+        // Map all original indices when table is first loaded
+        for (int i = 0; i < tableViewData.length; i++) {
+            filteredToOriginalIndex.put(i, i);
+        }
     }
 
 
@@ -75,7 +84,21 @@ public class Employees extends JPanel {
 
         Font font = new Font("Arial", Font.PLAIN, 16);
 
-        searchField = new JTextField();
+        searchField = new JTextField() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (getText().length() == 0) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.GRAY);
+                    g2.setFont(getFont().deriveFont(Font.PLAIN));
+                    FontMetrics fm = g2.getFontMetrics();
+                    int padding = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+                    g2.drawString("Search", 5, padding);
+                    g2.dispose();
+                }
+            }
+        };
         searchField.setFont(font);
         searchField.setBorder(null);
         searchField.setPreferredSize(null);
@@ -90,7 +113,7 @@ public class Employees extends JPanel {
 
 
         searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(searchButton, BorderLayout.WEST);
+        //searchPanel.add(searchButton, BorderLayout.WEST);
 
         // Dropdown
         RoundedComboBox<String> sortCombo = new RoundedComboBox<>(new String[] {
@@ -199,6 +222,9 @@ public class Employees extends JPanel {
 
         // Table data
         Object[][] data = employeeTableData;
+
+        tableViewData = employeeTableData;
+
         employeeTableModel = new DefaultTableModel(tableViewData, tableViewHeaders) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -206,6 +232,7 @@ public class Employees extends JPanel {
             }
         };
         table = new JTable(employeeTableModel);
+        initializeFilteredIndices();
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 
